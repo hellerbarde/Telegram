@@ -30,7 +30,7 @@ public class ContactsActivitySearchAdapter extends BaseFragmentAdapter {
     private HashMap<Integer, TLRPC.User> ignoreUsers;
     private ArrayList<TLRPC.User> searchResult;
     private ArrayList<CharSequence> searchResultNames;
-    private Timer searchDialogsTimer;
+    private Timer searchTimer;
 
     public ContactsActivitySearchAdapter(Context context, HashMap<Integer, TLRPC.User> arg1) {
         mContext = context;
@@ -44,19 +44,19 @@ public class ContactsActivitySearchAdapter extends BaseFragmentAdapter {
             notifyDataSetChanged();
         } else {
             try {
-                if (searchDialogsTimer != null) {
-                    searchDialogsTimer.cancel();
+                if (searchTimer != null) {
+                    searchTimer.cancel();
                 }
             } catch (Exception e) {
                 FileLog.e("tmessages", e);
             }
-            searchDialogsTimer = new Timer();
-            searchDialogsTimer.schedule(new TimerTask() {
+            searchTimer = new Timer();
+            searchTimer.schedule(new TimerTask() {
                 @Override
                 public void run() {
                     try {
-                        searchDialogsTimer.cancel();
-                        searchDialogsTimer = null;
+                        searchTimer.cancel();
+                        searchTimer = null;
                     } catch (Exception e) {
                         FileLog.e("tmessages", e);
                     }
@@ -71,7 +71,7 @@ public class ContactsActivitySearchAdapter extends BaseFragmentAdapter {
             @Override
             public void run() {
                 final ArrayList<TLRPC.TL_contact> contactsCopy = new ArrayList<TLRPC.TL_contact>();
-                contactsCopy.addAll(ContactsController.Instance.contacts);
+                contactsCopy.addAll(ContactsController.getInstance().contacts);
                 Utilities.globalQueue.postRunnable(new Runnable() {
                     @Override
                     public void run() {
@@ -85,7 +85,7 @@ public class ContactsActivitySearchAdapter extends BaseFragmentAdapter {
                         ArrayList<CharSequence> resultArrayNames = new ArrayList<CharSequence>();
 
                         for (TLRPC.TL_contact contact : contactsCopy) {
-                            TLRPC.User user = MessagesController.Instance.users.get(contact.user_id);
+                            TLRPC.User user = MessagesController.getInstance().users.get(contact.user_id);
                             if (user.first_name != null && user.first_name.toLowerCase().startsWith(q) || user.last_name != null && user.last_name.toLowerCase().startsWith(q)) {
                                 if (user.id == UserConfig.clientUserId) {
                                     continue;
@@ -161,7 +161,7 @@ public class ContactsActivitySearchAdapter extends BaseFragmentAdapter {
         ((ChatOrUserCell) view).useSeparator = i != searchResult.size() - 1;
 
         Object obj = searchResult.get(i);
-        TLRPC.User user = MessagesController.Instance.users.get(((TLRPC.User)obj).id);
+        TLRPC.User user = MessagesController.getInstance().users.get(((TLRPC.User)obj).id);
 
         if (user != null) {
             ((ChatOrUserCell)view).setData(user, null, null, searchResultNames.get(i), null);
